@@ -4,10 +4,7 @@ import { Chrome } from 'vue-color';
 
 // 定义待办事项列表
 const todos = ref([
-  { id: 1, text: '3月11日', completed: false, color: '#FFFFFF', createdAt: new Date('2023-03-11T10:00:00'), completedAt: null },
-  { id: 2, text: '1、翻译论文', completed: false, color: '#FFFFFF', createdAt: new Date('2023-03-12T09:30:00'), completedAt: null },
-  { id: 3, text: '2、排版', completed: false, color: '#FFFFFF', createdAt: new Date('2023-03-12T14:00:00'), completedAt: null },
-  { id: 4, text: '打游戏', completed: false, color: '#FFFFFF', createdAt: new Date('2023-03-13T18:00:00'), completedAt: null }
+  
 ]);
 
 // 格式化日期时间
@@ -68,18 +65,6 @@ const editColor = ref('#FFFFFF');
 const showColorPicker = ref(false);
 
 // 颜色选择器预设颜色
-const themeColors = [
-  ['#000000', '#F5F5DC', '#0F52BA', '#6495ED', '#C41E3A', '#7CFC00', '#808000', '#40E0D0', '#FFA500'],
-  ['#808080', '#D2B48C', '#ADD8E6', '#87CEEB', '#FFC0CB', '#E6E6FA', '#D8BFD8', '#AFEEEE', '#FFE4B5'],
-  ['#000000', '#2F4F4F', '#696969', '#778899', '#708090', '#A9A9A9', '#C0C0C0', '#D3D3D3', '#DCDCDC'],
-  ['#556B2F', '#8B4513', '#A0522D', '#6B8E23', '#BDB76B', '#F4A460', '#CD853F', '#DEB887', '#D2B48C'],
-  ['#483D8B', '#4682B4', '#4169E1', '#191970', '#000080', '#00008B', '#0000CD', '#0000FF', '#1E90FF'],
-  ['#8B0000', '#800000', '#A52A2A', '#B22222', '#DC143C', '#FF0000', '#FF6347', '#FF7F50', '#CD5C5C'],
-  ['#9400D3', '#800080', '#8B008B', '#BA55D3', '#9932CC', '#8A2BE2', '#9370DB', '#7B68EE', '#6A5ACD'],
-  ['#008080', '#008B8B', '#5F9EA0', '#20B2AA', '#00CED1', '#48D1CC', '#00FFFF', '#7FFFD4', '#66CDAA'],
-  ['#FF4500', '#FF8C00', '#FFA500', '#FFD700', '#FFFF00', '#F0E68C', '#EEE8AA', '#DAA520', '#B8860B']
-];
-
 const standardColors = [
   '#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#8B00FF', '#000000', '#FFFFFF'
 ];
@@ -260,20 +245,6 @@ const endDrag = () => {
                 :style="{ backgroundColor: editColor }"
               ></button>
               <div v-if="showColorPicker" class="color-picker-dropdown">
-                <div class="color-picker-section">
-                  <div class="section-title">主题颜色</div>
-                  <div class="theme-colors">
-                    <div v-for="(row, rowIndex) in themeColors" :key="'row-'+rowIndex" class="color-row">
-                      <div 
-                        v-for="(color, colIndex) in row" 
-                        :key="'col-'+colIndex"
-                        class="color-cell"
-                        :style="{ backgroundColor: color }"
-                        @click="selectThemeColor(color)"
-                      ></div>
-                    </div>
-                  </div>
-                </div>
                 <div class="color-picker-section">
                   <div class="section-title">标准颜色</div>
                   <div class="standard-colors">
@@ -512,19 +483,6 @@ body {
   font-size: 1rem;
 }
 
-.add-btn {
-  background-color: #42b883;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .add-input-container {
   margin-top: 20px;
 }
@@ -589,15 +547,9 @@ body {
   margin-bottom: 1px;
 }
 
-.theme-colors, .standard-colors {
+.standard-colors {
   display: flex;
   flex-wrap: wrap;
-}
-
-.color-row {
-  display: flex;
-  width: 100%;
-  margin-bottom: 2px;
 }
 
 .color-cell {
