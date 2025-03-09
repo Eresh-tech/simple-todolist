@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { Chrome } from 'vue-color';
+import { DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
 
 // 定义待办事项列表
 const todos = ref([
@@ -23,11 +25,14 @@ const activeTab = ref('todo');
 
 // 添加新的待办事项
 const addTodo = () => {
+  const now = new Date();
   const todo = {
     id: Date.now(),
     text: '',
     completed: false,
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    createdAt: now,
+    deadline: now
   };
   todos.value.push(todo);
   startEdit(todo);
@@ -63,6 +68,23 @@ const editingTodo = ref(null);
 const editText = ref('');
 const editColor = ref('#FFFFFF');
 const showColorPicker = ref(false);
+
+// 日期选择相关
+const showDatePicker = ref(false);
+const activeDatePickerTodo = ref(null);
+
+// 显示/隐藏日期选择器
+const toggleDatePicker = (todo) => {
+  if (activeDatePickerTodo.value === todo && showDatePicker.value) {
+    // 如果点击的是当前已激活的待办事项，则关闭日期选择器
+    showDatePicker.value = false;
+    activeDatePickerTodo.value = null;
+  } else {
+    // 否则，显示日期选择器并设置当前激活的待办事项
+    showDatePicker.value = true;
+    activeDatePickerTodo.value = todo;
+  }
+};
 
 // 颜色选择器预设颜色
 const standardColors = [
@@ -279,7 +301,37 @@ const endDrag = () => {
           
           <!-- 查看模式 -->
           <div v-else class="view-mode">
-            <span class="bullet"><i class="far fa-calendar-alt" :title="`创建时间: ${formatDateTime(todo.createdAt)}`"></i></span>
+            <span class="bullet">
+              <i 
+                class="far fa-calendar-alt" 
+                :title="`截止时间: ${formatDateTime(todo.deadline)}`"
+                @click.stop="toggleDatePicker(todo)"
+              ></i>
+              <!-- 日期选择器 -->
+              <div v-if="showDatePicker && activeDatePickerTodo === todo" class="date-picker-container">
+                <DatePicker 
+                  v-model="todo.deadline" 
+                  @click.stop 
+                  @update:model-value="showDatePicker = false"
+                  :theme="{
+                    color: 'red',
+                    isDark: true
+                  }"
+                  :attributes="[
+                    {
+                      key: 'today',
+                      highlight: 'green',
+                      dates: new Date()
+                    },
+                    {
+                      key: 'deadline',
+                      highlight: 'red',
+                      dates: todo.deadline
+                    }
+                  ]"
+                />
+              </div>
+            </span>
             <span class="todo-text" :style="{ color: todo.color }">{{ todo.text }}</span>
             <div class="todo-actions">
               <button @click="startEdit(todo)" class="icon-btn edit-btn" title="编辑">
@@ -336,6 +388,74 @@ const endDrag = () => {
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
+}
+
+.date-picker-container {
+  position: absolute;
+  z-index: 1000;
+  margin-top: 0;
+  background-color: transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  width: 200px;
+  transform: scale(0.9);
+  transform-origin: top left;
+}
+
+/* 覆盖v-calendar默认样式 */
+.date-picker-container :deep(.vc-container) {
+  width: 100% !important;
+  max-width: 200px !important;
+}
+
+.date-picker-container :deep(.vc-pane-container) {
+  width: 100% !important;
+  max-width: 200px !important;
+}
+
+.date-picker-container :deep(.vc-weeks) {
+  padding: 0 5px !important;
+}
+
+.date-picker-container :deep(.vc-day) {
+  padding: 2px 0 !important;
+  min-height: 25px !important;
+}
+
+.date-picker-container :deep(.vc-pane) {
+  padding: 5px !important;
+  width: 100% !important;
+}
+
+/* 强制覆盖v-calendar高亮样式 */
+.date-picker-container :deep(.vc-day .vc-highlights .vc-highlight-bg-solid) {
+  background-color: transparent !important;
+}
+
+.date-picker-container :deep(.vc-day .vc-highlights .vc-highlight-bg-light) {
+  background-color: transparent !important;
+}
+
+/* 直接覆盖内联样式 */
+.date-picker-container :deep(.vc-day .vc-highlights .vc-highlight-bg-solid[style*="background-color: rgb(66, 184, 131)"]) {
+  background-color: #42b883 !important;
+}
+
+.date-picker-container :deep(.vc-day .vc-highlights .vc-highlight-bg-solid[style*="background-color: rgb(255, 74, 74)"]) {
+  background-color: #ff4a4a !important;
+}
+
+/* 确保文字颜色正确 */
+.date-picker-container :deep(.vc-day .vc-day-content) {
+  color: inherit !important;
+}
+
+.date-picker-container :deep(.vc-day .vc-highlights .vc-highlight-content-solid) {
+  color: white !important;
+}
+
+.bullet {
+  position: relative;
 }
 
 body {
