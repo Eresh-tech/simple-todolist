@@ -117,6 +117,95 @@ const selectThemeColor = (color) => {
   editColor.value = color;
   showColorPicker.value = false;
 };
+
+// 拖曳排序相关变量
+const draggedTodo = ref(null);
+const dragStartY = ref(0);
+const dragThreshold = 15; // 垂直拖动阈值，单位像素
+const isDragging = ref(false);
+const dragOverTodo = ref(null);
+
+// 开始拖动
+const startDrag = (event, todo) => {
+  // 如果正在编辑，不允许拖动
+  if (editingTodo.value) return;
+  
+  // 阻止默认行为，防止文本选择
+  event.preventDefault();
+  
+  draggedTodo.value = todo;
+  dragStartY.value = event.clientY;
+  
+  // 添加全局鼠标事件监听
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', endDrag);
+};
+
+// 拖动过程
+const onDrag = (event) => {
+  if (!draggedTodo.value) return;
+  
+  // 计算垂直移动距离
+  const deltaY = event.clientY - dragStartY.value;
+  
+  // 只有垂直移动超过阈值才触发拖动效果
+  if (Math.abs(deltaY) >= dragThreshold) {
+    isDragging.value = true;
+    
+    // 获取鼠标下方的元素
+    const elementsUnderMouse = document.elementsFromPoint(event.clientX, event.clientY);
+    
+    // 查找鼠标下方的待办事项
+    for (const element of elementsUnderMouse) {
+      const todoItem = element.closest('.todo-item');
+      if (todoItem) {
+        const todoId = parseInt(todoItem.getAttribute('data-id'));
+        const overTodo = todos.value.find(t => t.id === todoId && !t.completed);
+        
+        if (overTodo && overTodo !== draggedTodo.value) {
+          dragOverTodo.value = overTodo;
+          return;
+        }
+      }
+    }
+    
+    dragOverTodo.value = null;
+  }
+};
+
+// 结束拖动
+const endDrag = () => {
+  if (isDragging.value && draggedTodo.value && dragOverTodo.value) {
+    // 获取源和目标索引
+    const activeTodos = todos.value.filter(t => !t.completed);
+    const sourceIndex = activeTodos.findIndex(t => t.id === draggedTodo.value.id);
+    const targetIndex = activeTodos.findIndex(t => t.id === dragOverTodo.value.id);
+    
+    if (sourceIndex !== -1 && targetIndex !== -1) {
+      // 从数组中移除拖动项
+      const [movedItem] = activeTodos.splice(sourceIndex, 1);
+      // 插入到新位置
+      activeTodos.splice(targetIndex, 0, movedItem);
+      
+      // 更新原始数组
+      const newTodos = [];
+      // 先添加未完成的项（已排序）
+      newTodos.push(...activeTodos);
+      // 再添加已完成的项
+      newTodos.push(...todos.value.filter(t => t.completed));
+      todos.value = newTodos;
+    }
+  }
+  
+  // 重置拖动状态
+  draggedTodo.value = null;
+  dragOverTodo.value = null;
+  isDragging.value = false;
+  
+  // 移除全局事件监听
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', endDrag);
+};
 </script>
 
 <template>
@@ -145,7 +234,17 @@ const selectThemeColor = (color) => {
         <p>暂无待办事项</p>
       </div>
       <ul v-else>
-        <li v-for="todo in todos.filter(t => !t.completed)" :key="todo.id" class="todo-item">
+        <li 
+          v-for="todo in todos.filter(t => !t.completed)" 
+          :key="todo.id" 
+          class="todo-item" 
+          :class="{
+            'dragging': isDragging && draggedTodo === todo,
+            'drag-over': dragOverTodo === todo
+          }"
+          :data-id="todo.id"
+          @mousedown="startDrag($event, todo)"
+        >
           <!-- 编辑模式 -->
           <div v-if="editingTodo === todo" class="edit-mode">
             <input 
@@ -312,6 +411,21 @@ body {
 .todo-item {
   padding: 10px 0;
   border-bottom: 1px solid #333;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.todo-item.dragging {
+  opacity: 0.7;
+  background-color: #2a2a2a;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  user-select: none;
+}
+
+.todo-item.drag-over {
+  border-top: 2px solid #42b883;
 }
 
 .view-mode, .edit-mode {
