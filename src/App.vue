@@ -125,6 +125,16 @@ const selectThemeColor = (color) => {
   showColorPicker.value = false;
 };
 
+// 判断两个日期是否在同一天
+const isSameDay = (date1, date2) => {
+  if (!date1 || !date2) return false;
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
+};
+
 // 拖曳排序相关变量
 const draggedTodo = ref(null);
 const dragStartY = ref(0);
@@ -304,7 +314,7 @@ const endDrag = () => {
             <span class="bullet">
               <i 
                 class="far fa-calendar-alt" 
-                :title="`截止时间: ${formatDateTime(todo.deadline)}`"
+                :title="`${todo.deadline.getTime() === todo.createdAt.getTime() ? '创建时间' : '截止时间'}: ${formatDateTime(todo.deadline)}`"
                 @click.stop="toggleDatePicker(todo)"
               ></i>
               <!-- 日期选择器 -->
@@ -325,7 +335,7 @@ const endDrag = () => {
                     },
                     {
                       key: 'deadline',
-                      highlight: 'red',
+                      highlight: isSameDay(todo.deadline, todo.createdAt) ? 'green' : 'red',
                       dates: todo.deadline
                     }
                   ]"
