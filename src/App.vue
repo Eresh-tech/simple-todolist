@@ -508,7 +508,7 @@ body {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 1rem;
 }
 
